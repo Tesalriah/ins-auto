@@ -1,0 +1,38 @@
+<h2>개발 우선 순위 결정: 로컬 개발 후 배포 결정 (Option C)</h2>
+<p class="subtitle">먼저 기능을 완성하고, 실제 운영 환경은 나중에 고민하기로 했습니다.</p>
+
+<div class="section">
+  <h3>현재 아키텍처 구상</h3>
+  <div class="mockup">
+    <div class="mockup-header">데이터 흐름 (Data Flow)</div>
+    <div class="mockup-body">
+      <ol>
+        <li><strong>React (Frontend):</strong> 사용자 대시보드. 어떤 게시물을 모니터링할지, 어떤 메시지를 보낼지 설정.</li>
+        <li><strong>Supabase (DB):</strong> 설정값 저장 및 처리된 댓글/DM 내역 관리.</li>
+        <li><strong>Node.js (Automator):</strong> Puppeteer를 사용하여 인스타그램 로그인, 댓글 감지, DM 발송, 답글 작성 수행.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>질문 3: 핵심 트리거 (Trigger) 방식</h3>
+  <p>자동화 스크립트가 언제 작동해야 할까요? 방식에 따라 로직이 달라집니다.</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>주기적 체크 (Polling)</h3>
+      <p>예: 5분마다 인스타그램에 들어가서 새로운 댓글이 있는지 확인</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>실시간 감지 (Streaming)</h3>
+      <p>브라우저를 계속 띄워놓고 댓글이 달리는 즉시 반응 (리소스 소모 큼)</p>
+    </div>
+  </div>
+</div>

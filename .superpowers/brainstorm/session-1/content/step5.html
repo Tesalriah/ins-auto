@@ -1,0 +1,44 @@
+<h2>데이터 흐름 결정: Supabase 중심 아키텍처 (Option A)</h2>
+<p class="subtitle">모든 상태와 명령은 Supabase DB를 통해 동기화됩니다.</p>
+
+<div class="section">
+  <h3>최종 시스템 구조</h3>
+  <div class="mockup">
+    <div class="mockup-header">컴포넌트 역할</div>
+    <div class="mockup-body">
+      <ul>
+        <li><strong>Dashboard (React):</strong> 설정 저장 (게시물 URL, 답글 문구, DM 메시지) 및 상태 모니터링.</li>
+        <li><strong>Database (Supabase):</strong> <code>tasks</code>, <code>comments</code>, <code>logs</code> 테이블로 전체 데이터 관리.</li>
+        <li><strong>Automator (Node.js):</strong> 
+          <ul>
+            <li>Supabase를 구독하여 새로운 작업 감지</li>
+            <li>Puppeteer로 인스타그램 접속 및 작업 수행</li>
+            <li>결과(성공/실패)를 다시 Supabase에 업데이트</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>마지막 질문: 보안 및 인증</h3>
+  <p>인스타그램 로그인을 어떻게 처리할까요? 자동화 방식에서 가장 중요한 부분입니다.</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>계정/비번 직접 입력</h3>
+      <p>코드나 환경변수에 아이디/비번을 저장하고 매번 로그인 (가장 위험, 2단계 인증 시 복잡)</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>세션(Cookie) 저장 방식</h3>
+      <p>한 번 직접 로그인한 후 브라우저 세션(쿠키)을 저장해두고 재사용 (비교적 안전, 추천)</p>
+    </div>
+  </div>
+</div>

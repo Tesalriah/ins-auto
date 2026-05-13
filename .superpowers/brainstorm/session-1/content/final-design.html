@@ -1,0 +1,51 @@
+<h2>최종 설계안 (Final Design)</h2>
+<p class="subtitle">모든 요구사항이 반영된 인스타그램 자동화 시스템 설계입니다.</p>
+
+<div class="section">
+  <h3>1. 아키텍처 개요</h3>
+  <div class="mockup">
+    <div class="mockup-header">System Components</div>
+    <div class="mockup-body">
+      <ul>
+        <li><strong>Frontend (React):</strong> 게시물 관리 UI, 로그 확인, 작업 설정 대시보드.</li>
+        <li><strong>Backend/DB (Supabase):</strong> 설정 데이터, 처리된 댓글 이력, 작업 상태 저장.</li>
+        <li><strong>Automator (Node.js + Puppeteer):</strong> 인스타그램 세션 관리, 댓글 감지 및 DM/답글 자동화 엔진.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. 핵심 워크플로우</h3>
+  <div class="mockup">
+    <div class="mockup-header">Automation Logic</div>
+    <div class="mockup-body">
+      <ol>
+        <li>사용자가 React에서 모니터링할 게시물과 메시지를 설정 (Supabase 저장).</li>
+        <li>Automator가 주기적으로 Supabase를 확인하여 활성화된 작업 목록 로드.</li>
+        <li>저장된 쿠키를 이용해 인스타그램 세션 유지.</li>
+        <li>각 게시물의 최신 댓글을 읽어와서 '처리되지 않은 새 댓글' 식별.</li>
+        <li>새 댓글 작성자에게 <strong>DM 발송</strong> 및 해당 댓글에 <strong>답글 작성</strong>.</li>
+        <li>작업 완료 후 Supabase에 처리 이력 업데이트.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. 데이터 모델 (테이블 설계)</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="card-body">
+        <h4>tasks</h4>
+        <p>모니터링 대상 게시물 URL, DM 문구, 답글 문구, 실행 간격 등</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h4>comments_history</h4>
+        <p>이미 처리된 댓글 ID, 작성자, 처리 일시 (중복 발송 방지)</p>
+      </div>
+    </div>
+  </div>
+</div>

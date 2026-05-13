@@ -1,0 +1,44 @@
+<h2>핵심 로직 결정: 주기적 체크 (Polling)</h2>
+<p class="subtitle">계정 안전을 위해 일정 간격으로 댓글을 확인하는 방식을 채택했습니다.</p>
+
+<div class="section">
+  <h3>진행 상황 업데이트</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>Polling의 장점</h4>
+      <ul>
+        <li>계정 정지 위험 감소</li>
+        <li>리소스 효율적 사용</li>
+        <li>예외 처리(네트워크 오류 등) 용이</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>단점</h4>
+      <ul>
+        <li>실시간 반응 아님 (지연 발생)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>질문 4: 컴포넌트 간 통신 방식</h3>
+  <p>React(대시보드)와 Node.js(자동화 스크립트)가 어떻게 정보를 주고받을까요?</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Supabase 중심 (DB Trigger)</h3>
+      <p>React가 DB를 업데이트하면, 스크립트가 DB를 읽어서 작업 수행 (데이터 동기화에 유리)</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>직접 통신 (API)</h3>
+      <p>Node.js 서버에 API를 만들고 React가 직접 호출 (빠른 명령 전달)</p>
+    </div>
+  </div>
+</div>
