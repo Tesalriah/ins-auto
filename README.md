@@ -37,6 +37,15 @@ cp .env.example .env
 
 ## 🚀 3. 사용 방법
 
+### 0) 게시글 설정
+```bash
+# frontend 폴더에서 실행
+npm run dev
+```
+실행된 프론트 서버 : http://localhost:5173/<br>
+접속하여 적용할 게시물 설정<br>
+<img width="824" height="532" alt="스크린샷 2026-05-14 오후 8 17 00" src="https://github.com/user-attachments/assets/0cec5fbb-93e6-489f-b80f-d16f2d38df18" />
+
 ### 1) 엔진 실행
 ```bash
 # backend 폴더에서 실행
