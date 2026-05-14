@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import { loginToInstagram } from './authenticator.js';
+import { loginToInstagram, loadSession } from './authenticator.js';
 dotenv.config();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 export async function runEngine() {
@@ -20,7 +20,9 @@ export async function runEngine() {
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 1000 });
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
-    // 매 실행마다 직접 로그인 수행
+    // 세션 로드 시도
+    await loadSession(page);
+    // 로그인 수행 (세션이 유효하면 자동으로 넘어가고, 아니면 수동 로그인 대기)
     await loginToInstagram(page);
     const { data: tasks, error } = await supabase.from('tasks').select('*').eq('is_active', true);
     if (error || !tasks || tasks.length === 0) {
@@ -168,7 +170,7 @@ async function processTask(page, task) {
                 const inputSelector = 'textarea[aria-label*="댓글"], textarea[placeholder*="댓글"], section textarea';
                 await page.waitForSelector(inputSelector, { timeout: 8000 });
                 await page.focus(inputSelector);
-                await page.keyboard.type(' ' + task.reply_content, { delay: 120 });
+                await page.keyboard.type(task.reply_content, { delay: 120 });
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 const posted = await page.evaluate(() => {
                     // '게시' 텍스트를 가진 span을 먼저 찾음
@@ -222,23 +224,33 @@ async function sendDMInNewTab(browser, username, message) {
         console.log(`   - [DM] ${username}님 프로필로 이동...`);
         await dmPage.goto(`https://www.instagram.com/${username}/`, { waitUntil: 'networkidle2' });
         await new Promise(resolve => setTimeout(resolve, 4000));
-        // 팔로우 확인 및 클릭
-        const followBtnText = await dmPage.evaluate(() => {
-            const btns = Array.from(document.querySelectorAll('button, div[role="button"]'));
-            const target = btns.find(b => ['팔로우', 'Follow', '맞팔로우', 'Follow Back'].includes(b.textContent || ''));
-            if (target) {
-                target.click();
-                return target.textContent;
+        // 1. 헤더 내 버튼 상태 확인
+        const buttonState = await dmPage.evaluate(() => {
+            const header = document.querySelector('header');
+            if (!header)
+                return { canMessage: false, canFollow: false };
+            const btns = Array.from(header.querySelectorAll('button, div[role="button"]'));
+            const hasMessageBtn = btns.some(b => b.textContent === '메시지 보내기' || b.textContent === 'Message');
+            const followBtn = btns.find(b => ['팔로우', 'Follow', '맞팔로우', 'Follow Back'].includes(b.textContent || ''));
+            if (hasMessageBtn) {
+                return { canMessage: true, canFollow: false };
             }
-            return null;
+            else if (followBtn) {
+                followBtn.click();
+                return { canMessage: false, canFollow: true, followBtnText: followBtn.textContent };
+            }
+            return { canMessage: false, canFollow: false };
         });
-        if (followBtnText) {
-            console.log(`   - [DM] ${followBtnText} 버튼 클릭됨. 5초 대기...`);
+        if (buttonState.canFollow) {
+            console.log(`   - [DM] ${buttonState.followBtnText} 버튼 클릭됨. 5초 대기...`);
             await new Promise(resolve => setTimeout(resolve, 5000));
         }
-        // 메시지 버튼 클릭
+        // 2. 메시지 버튼 클릭 (이미 있거나 팔로우 후에 생겼을 경우)
         const msgBtnClicked = await dmPage.evaluate(() => {
-            const btns = Array.from(document.querySelectorAll('button, div[role="button"]'));
+            const header = document.querySelector('header');
+            if (!header)
+                return false;
+            const btns = Array.from(header.querySelectorAll('button, div[role="button"]'));
             const target = btns.find(b => b.textContent === '메시지 보내기' || b.textContent === 'Message');
             if (target) {
                 target.click();
@@ -249,7 +261,6 @@ async function sendDMInNewTab(browser, username, message) {
         if (msgBtnClicked) {
             console.log(`   - [DM] 메시지 창 로딩 대기...`);
             await new Promise(resolve => setTimeout(resolve, 7000));
-            // 메시지 입력창 찾기 및 입력 (여러 타입 대응)
             const inputSelector = 'div[role="textbox"], textarea[aria-label*="메시지"], textarea[placeholder*="메시지"]';
             try {
                 await dmPage.waitForSelector(inputSelector, { timeout: 10000 });
@@ -257,9 +268,7 @@ async function sendDMInNewTab(browser, username, message) {
                 console.log(`   - [DM] 메시지 입력 중...`);
                 await dmPage.keyboard.type(message, { delay: 120 });
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                // 전송 (Enter 또는 전송 버튼 클릭)
                 await dmPage.keyboard.press('Enter');
-                // 전송 버튼이 따로 있는 경우를 대비한 추가 처리
                 await dmPage.evaluate(() => {
                     const btns = Array.from(document.querySelectorAll('button, div[role="button"]'));
                     const sendBtn = btns.find(b => b.textContent === '보내기' || b.textContent === 'Send');

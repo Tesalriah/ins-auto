@@ -1,0 +1,13 @@
+# 의존성 및 빌드 결과물
+node_modules/
+dist/
+
+# 보안 및 세션 데이터 (중요: 절대 깃에 올리지 마세요)
+session.json
+user_data/
+.env
+
+# 로그 및 OS 관련 파일
+*.log
+.DS_Store
+Thumbs.db
