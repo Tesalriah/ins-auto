@@ -4,11 +4,11 @@
 인스타그램 게시물의 댓글을 감지하여 자동으로 DM을 보내고 답글을 다는 시스템.
 
 ## 현재 진행 상태
-- Phase 1 ~ 4 구현 완료 (백엔드 엔진, 프론트엔드 대시보드, DB 연동)
-- 현재 Phase 5 (통합 테스트 및 고도화) 단계 진입 필요
+- Phase 1 ~ 5 구현 및 안정화 완료 (백엔드 엔진 리팩토링 완료)
+- 상세한 기술적 맥락과 다음 단계는 `docs/AI-HANDOVER.md`를 참조할 것.
 
 ## 핵심 아키텍처
-- React 대시보드 + Node.js Puppeteer 엔진 + Supabase DB
+- React 대시보드 + Node.js Puppeteer 엔진 (System Chrome 연동) + Supabase DB
 
 ## 최근 결정 사항
 - Puppeteer의 `userDataDir` 옵션을 사용하여 브라우저 세션 및 환경을 유지하도록 구현함.
