@@ -124,7 +124,7 @@ async function processTask(page: Page, task: any) {
         for (let i = 0; i < 8; i++) {
           if (!container) break;
           
-          // 유저네임 추출 시 '분', '시간', '주' 등이 포함된 링크는 제외 (시간 정보임)
+          // 유저네임 추출 시 '분', '시간', '주', '일' 등이 포함된 링크는 제외 (시간 정보임)
           const links = Array.from(container.querySelectorAll('h3 a, h2 a, a[href*="/"]'));
           const userLink = links.find(a => {
             const t = a.textContent?.trim() || '';
@@ -132,6 +132,7 @@ async function processTask(page: Page, task: any) {
                    !t.includes('분') && 
                    !t.includes('시간') && 
                    !t.includes('주') && 
+                   !t.includes('일') && 
                    !['답글 달기', 'Reply', '좋아요'].includes(t);
           });
 
