@@ -50,13 +50,13 @@ async function processTask(page, task) {
         });
         if (myUsername) {
             console.log(`[준비] 계정(@${myUsername}) 프로필로 이동...`);
-            await page.goto(`https://www.instagram.com/${myUsername}/`, { waitUntil: 'networkidle2' });
+            await page.goto(`https://www.instagram.com/${myUsername}/`, { waitUntil: 'domcontentloaded' });
         }
         else {
             console.log(`[경고] 계정 아이디를 찾지 못했습니다. 메인 페이지에서 시도합니다.`);
-            await page.goto('https://www.instagram.com/', { waitUntil: 'networkidle2' });
+            await page.goto('https://www.instagram.com/', { waitUntil: 'domcontentloaded' });
         }
-        await new Promise(resolve => setTimeout(resolve, 4000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // 게시물 URL에서 단축 코드(Shortcode) 추출 (예: CcXkMGkpTG9)
         const shortcode = task.post_url.split('/p/')[1]?.split('/')[0] || task.post_url.split('/reels/')[1]?.split('/')[0];
         console.log(`[탐색] 게시물(코드: ${shortcode})을 찾는 중...`);
@@ -72,9 +72,9 @@ async function processTask(page, task) {
         }, shortcode);
         if (!postClicked) {
             console.log(`[경고] 프로필에서 게시물을 찾지 못했습니다. 직접 이동으로 대체합니다.`);
-            await page.goto(task.post_url, { waitUntil: 'networkidle2' });
+            await page.goto(task.post_url, { waitUntil: 'domcontentloaded' });
         }
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         // 스크롤을 살짝 내려서 댓글 로딩 유도
         await page.evaluate(() => {
             const modal = document.querySelector('div[role="dialog"]');
@@ -83,7 +83,7 @@ async function processTask(page, task) {
             else
                 window.scrollBy(0, 500);
         });
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         // 1. 처리해야 할 댓글 대상 정보 수집 (가장 범용적인 방식으로 회귀)
         const targets = await page.evaluate(() => {
             const results = [];
@@ -165,14 +165,14 @@ async function processTask(page, task) {
                     continue;
                 }
                 console.log(`[단계 1/4] 답글 버튼 클릭 성공 (@${target.user})`);
-                // 답글 버튼 클릭 후 태그(@id)가 입력될 때까지 충분히 대기
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                // 답글 버튼 클릭 후 태그(@id)가 입력될 때까지 대기
+                await new Promise(resolve => setTimeout(resolve, 800));
                 // 3. 답글 입력 및 게시
                 const inputSelector = 'textarea[aria-label*="댓글"], textarea[placeholder*="댓글"], section textarea';
-                await page.waitForSelector(inputSelector, { timeout: 8000 });
+                await page.waitForSelector(inputSelector, { timeout: 5000 });
                 await page.focus(inputSelector);
-                await page.keyboard.type(task.reply_content, { delay: 120 });
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await page.keyboard.type(task.reply_content, { delay: 30 });
+                await new Promise(resolve => setTimeout(resolve, 500));
                 const posted = await page.evaluate(() => {
                     // '게시' 텍스트를 가진 span을 먼저 찾음
                     const spans = Array.from(document.querySelectorAll('span'));
@@ -193,7 +193,7 @@ async function processTask(page, task) {
                 else {
                     console.log(`[단계 2/4] 답글 게시 완료`);
                 }
-                await new Promise(resolve => setTimeout(resolve, 4000));
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 // 4. 새 탭을 열어 DM 발송 (게시물 페이지 유지)
                 console.log(`[단계 3/4] DM 발송 시작 (새 탭)...`);
                 await sendDMInNewTab(page.browser(), target.user, task.dm_content);
@@ -205,8 +205,8 @@ async function processTask(page, task) {
                     username: target.user
                 });
                 console.log(`[완료] ${target.user}님 처리 성공`);
-                // 다음 댓글 처리 전 랜덤 대기
-                const delay = Math.floor(Math.random() * 5000) + 3000;
+                // 다음 댓글 처리 전 랜덤 대기 (초고속)
+                const delay = Math.floor(Math.random() * 500) + 300;
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
             catch (err) {
@@ -224,7 +224,7 @@ async function sendDMInNewTab(browser, username, message) {
     try {
         console.log(`   - [DM] ${username}님 프로필로 이동...`);
         await dmPage.goto(`https://www.instagram.com/${username}/`, { waitUntil: 'networkidle2' });
-        await new Promise(resolve => setTimeout(resolve, 4000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         // 1. 헤더 내 버튼 상태 확인
         const buttonState = await dmPage.evaluate(() => {
             const header = document.querySelector('header');
@@ -243,8 +243,8 @@ async function sendDMInNewTab(browser, username, message) {
             return { canMessage: false, canFollow: false };
         });
         if (buttonState.canFollow) {
-            console.log(`   - [DM] ${buttonState.followBtnText} 버튼 클릭됨. 5초 대기...`);
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            console.log(`   - [DM] ${buttonState.followBtnText} 버튼 클릭됨. 3초 대기...`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
         }
         // 2. 메시지 버튼 클릭 (이미 있거나 팔로우 후에 생겼을 경우)
         const msgBtnClicked = await dmPage.evaluate(() => {
@@ -261,14 +261,14 @@ async function sendDMInNewTab(browser, username, message) {
         });
         if (msgBtnClicked) {
             console.log(`   - [DM] 메시지 창 로딩 대기...`);
-            await new Promise(resolve => setTimeout(resolve, 7000));
+            await new Promise(resolve => setTimeout(resolve, 3500));
             const inputSelector = 'div[role="textbox"], textarea[aria-label*="메시지"], textarea[placeholder*="메시지"]';
             try {
                 await dmPage.waitForSelector(inputSelector, { timeout: 10000 });
                 await dmPage.focus(inputSelector);
                 console.log(`   - [DM] 메시지 입력 중...`);
-                await dmPage.keyboard.type(message, { delay: 120 });
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await dmPage.keyboard.type(message, { delay: 60 });
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 await dmPage.keyboard.press('Enter');
                 await dmPage.evaluate(() => {
                     const btns = Array.from(document.querySelectorAll('button, div[role="button"]'));
@@ -277,7 +277,7 @@ async function sendDMInNewTab(browser, username, message) {
                         sendBtn.click();
                 });
                 console.log(`   - [DM] 메시지 전송 시도 완료`);
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                await new Promise(resolve => setTimeout(resolve, 1500));
             }
             catch (e) {
                 console.log(`   - [DM] 메시지 입력창을 찾지 못했거나 입력에 실패했습니다.`);
